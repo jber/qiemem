@@ -9,11 +9,13 @@ CC_FILES       = ramp_extractor.cc \
 		stages_test.cc \
 		segment_generator.cc \
 		resources.cc \
-		units.cc
+		units.cc \
+		random.cc
 OBJ_FILES      = $(CC_FILES:.cc=.o)
 OBJS           = $(patsubst %,$(BUILD_DIR)%,$(OBJ_FILES)) $(STARTUP_OBJ)
 DEPS           = $(OBJS:.o=.d)
 DEP_FILE       = $(BUILD_DIR)depends.mk
+OPEN           = $(shell type -p open || echo xdg-open)
 
 all:  stages_test
 
@@ -27,7 +29,7 @@ $(BUILD_DIR)%.d: %.cc
 	g++ -MM -DTEST -I. $< -MF $@ -MT $(@:.d=.o)
 
 stages_test:  $(OBJS)
-	g++ -g -o $(TARGET) $(OBJS) -Wl,-no_pie -lm -lprofiler -L/opt/local/lib
+	g++ -g -o $(TARGET) $(OBJS) -lm -lprofiler -L/opt/local/lib
 
 depends:  $(DEPS)
 	cat $(DEPS) > $(DEP_FILE)
@@ -36,8 +38,11 @@ $(DEP_FILE):  $(BUILD_DIR) $(DEPS)
 	cat $(DEPS) > $(DEP_FILE)
 
 profile:	stages_test
-	env CPUPROFILE_FREQUENCY=1000 CPUPROFILE=$(BUILD_DIR)/stages.prof ./stages_test && pprof --pdf ./stages_test $(BUILD_DIR)/stages.prof > profile.pdf && open profile.pdf
-	
+	env CPUPROFILE_FREQUENCY=1000 CPUPROFILE=$(BUILD_DIR)/stages.prof ./stages_test && pprof --pdf ./stages_test $(BUILD_DIR)/stages.prof > profile.pdf && ${OPEN} profile.pdf
+
+valgrind:	stages_test
+	valgrind --tool=callgrind ./stages_test
+
 clean:
 	rm $(BUILD_DIR)*.*
 

@@ -33,17 +33,9 @@
 #include "stmlib/system/storage.h"
 
 #include "stages/io_buffer.h"
+#include "stages/modes.h"
 
 namespace stages {
-
-enum MultiMode {
-  MULTI_MODE_STAGES = 0,
-  MULTI_MODE_STAGES_ADVANCED = 5,
-  MULTI_MODE_STAGES_SLOW_LFO = 2,
-  MULTI_MODE_SIX_EG = 3,
-  MULTI_MODE_OUROBOROS = 1,
-  MULTI_MODE_OUROBOROS_ALTERNATE = 4
-};
 
 struct ChannelCalibrationData {
   float adc_offset;

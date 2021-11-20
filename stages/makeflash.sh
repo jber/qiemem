@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script builds Stages on the vagrant development machine, creating 
+# This script builds Stages on the vagrant development machine, creating
 # the WAV file if desired and plays it on the default ALSA device.
 # Usage:
 #   ./makeflash.sh [clean] [size] [wav]
@@ -41,7 +41,9 @@ if [[ $* == *wav* ]]; then
 	echo "PLAYING:"
 	echo "  `ls -l "$WAVFILE"`"
 	echo
-	aplay -D $ALSADEVICE -V mono "$WAVFILE"
+	# Seems to play more consistently when I don't specify device
+	#aplay -D $ALSADEVICE -V mono "$WAVFILE"
+	aplay -V mono "$WAVFILE"
 fi
 
 echo

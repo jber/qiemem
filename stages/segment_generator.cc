@@ -29,7 +29,6 @@
 #include "stages/segment_generator.h"
 
 #include "stages/oscillator.h"
-#include "stages/settings.h"
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/parameter_interpolator.h"
 #include "stmlib/dsp/units.h"
@@ -61,10 +60,10 @@ const size_t kSampleAndHoldDelay = kSampleRate * 2 / 1000;
 // Clock inhibition following a rising edge on the RESET input
 const size_t kClockInhibitDelay = kSampleRate * 5 / 1000;
 
-void SegmentGenerator::Init(Settings* settings) {
+void SegmentGenerator::Init(MultiMode multimode) {
   process_fn_ = &SegmentGenerator::ProcessMultiSegment;
 
-  settings_ = settings;
+  multimode_ = multimode;
 
   phase_ = 0.0f;
 
@@ -511,6 +510,7 @@ void SegmentGenerator::ProcessTapLFO(
     num_divider_ratios[range]
   );
 
+/*
   Ratio slider_r = base_ratio_quantizer_.Lookup(
     divider_ratios + divider_ratios_start[range],
     local_parameters_[0].slider * 1.03f,
@@ -520,6 +520,7 @@ void SegmentGenerator::ProcessTapLFO(
     last_slider_ratio = slider_r.ratio;
     out->discrete_state |= 1;
   }
+  */
 
   ramp_extractor_.Process(r, gate_flags, ramp, size);
   for (size_t i = 0; i < size; ++i) {
@@ -549,7 +550,7 @@ void SegmentGenerator::ProcessFreeRunningLFO(
       break;
   }
 
-  if (settings_->state().multimode == MULTI_MODE_STAGES_SLOW_LFO) {
+  if (multimode_ == MULTI_MODE_STAGES_SLOW_LFO) {
     frequency /= 8.0f;
   }
   CONSTRAIN(frequency, 0.0f, kMaxFrequency);
@@ -696,7 +697,7 @@ void SegmentGenerator::ProcessFreeRunningRandomLFO(
       break;
   }
 
-  if (settings_->state().multimode == MULTI_MODE_STAGES_SLOW_LFO) {
+  if (multimode_ == MULTI_MODE_STAGES_SLOW_LFO) {
     frequency /= 8.0f;
   }
 
@@ -739,12 +740,12 @@ void SegmentGenerator::ProcessTapRandomLFO(
     const GateFlags* gate_flags, SegmentGenerator::Output* out, size_t size) {
   float ramp[12];
   uint8_t range = segments_[0].range;
+
   Ratio r = function_quantizer_.Lookup(
     divider_ratios + divider_ratios_start[range],
     parameters_[0].primary * 1.03f,
     num_divider_ratios[range]
   );
-
   Ratio slider_r = base_ratio_quantizer_.Lookup(
     divider_ratios + divider_ratios_start[range],
     local_parameters_[0].slider * 1.03f,

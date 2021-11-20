@@ -383,7 +383,7 @@ void Init() {
 
   bool freshly_baked = !settings.Init();
   for (size_t i = 0; i < kNumChannels; ++i) {
-    segment_generator[i].Init(&settings);
+    segment_generator[i].Init((MultiMode) settings.state().multimode);
     eg[i].Init();
     oscillator[i].Init();
   }
