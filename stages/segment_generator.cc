@@ -252,7 +252,7 @@ void SegmentGenerator::ProcessMultiSegment(
       const Segment& destination = segments_[go_to_segment];
       start = destination.start
           ? *destination.start
-          : (go_to_segment == active_segment_ ? start : lp);
+          : (go_to_segment == active_segment_ ? start : value);
       if (go_to_segment != active_segment_) {
         previous_segment_ = active_segment_;
       }
