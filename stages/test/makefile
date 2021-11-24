@@ -3,19 +3,27 @@ PACKAGES       = stages/test stmlib/utils stages stages/ramp stmlib/dsp
 VPATH          = $(PACKAGES)
 
 TARGET         = stages_test
+PERF_TARGET    = stages_perf
 BUILD_ROOT     = build/
 BUILD_DIR      = $(BUILD_ROOT)$(TARGET)/
-CC_FILES       = ramp_extractor.cc \
-		stages_test.cc \
+COMMON_CC	   = ramp_extractor.cc \
 		segment_generator.cc \
 		resources.cc \
 		units.cc \
 		random.cc
+CC_FILES       = stages_test.cc $(COMMON_CC)
+PERF_CC_FILES  = stages_perf.cc $(COMMON_CC)
 OBJ_FILES      = $(CC_FILES:.cc=.o)
+PERF_OBJ_FILES = $(PERF_CC_FILES:.cc=.o)
 OBJS           = $(patsubst %,$(BUILD_DIR)%,$(OBJ_FILES)) $(STARTUP_OBJ)
 DEPS           = $(OBJS:.o=.d)
 DEP_FILE       = $(BUILD_DIR)depends.mk
 OPEN           = $(shell type -p open || echo xdg-open)
+
+PERF_CC_FILES  = stages_perf.cc $(COMMON_CC)
+PERF_OBJ_FILES = $(PERF_CC_FILES:.cc=.o)
+PERF_OBJS      = $(patsubst %,$(BUILD_DIR)%,$(PERF_OBJ_FILES)) $(STARTUP_OBJ)
+PERF_DEPS      = $(PERF_OBJS:.o=.d)
 
 all:  stages_test
 
@@ -31,6 +39,9 @@ $(BUILD_DIR)%.d: %.cc
 stages_test:  $(OBJS)
 	g++ -g -o $(TARGET) $(OBJS) -lm -lprofiler -L/opt/local/lib
 
+stages_perf: $(PERF_OBJS)
+	g++ -g -o $(PERF_TARGET) $(PERF_OBJS) -lm -L/opt/local/lib
+
 depends:  $(DEPS)
 	cat $(DEPS) > $(DEP_FILE)
 
@@ -42,6 +53,9 @@ profile:	stages_test
 
 valgrind:	stages_test
 	valgrind --tool=callgrind ./stages_test
+
+perf:		stages_perf
+	./stages_perf
 
 clean:
 	rm $(BUILD_DIR)*.*
