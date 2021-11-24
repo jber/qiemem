@@ -53,9 +53,11 @@ inline bool IsWithinTolerance(float x, float y, float error) {
 
 void RampExtractor::Init(float sample_rate, float max_frequency) {
   max_frequency_ = max_frequency;
-  audio_rate_period_ = 1.0f / (64.0f / sample_rate);
+  audio_rate_period_ = 1.0f / (100.0f / sample_rate);
   audio_rate_period_hysteresis_ = audio_rate_period_;
   sample_rate_ = sample_rate;
+  min_period_ = 1.0f / max_frequency_;
+  min_period_hysteresis_ = min_period_;
   Reset();
 }
 
@@ -67,7 +69,7 @@ void RampExtractor::Reset() {
   max_ramp_value_ = 1.0f;
   f_ratio_ = 1.0f;
   reset_counter_ = 1;
-  reset_interval_ = 3.0f * sample_rate_;
+  reset_interval_ = 5.0f * sample_rate_;
 
   Pulse p;
   p.on_duration = uint32_t(sample_rate_ * 0.25f);
@@ -106,7 +108,31 @@ float RampExtractor::PredictNextPeriod() {
   for (int i = 0; i <= kMaxPatternPeriod; ++i) {
     float error = predicted_period_[i] - last_period;
     float error_sq = error * error;
+    //float pred_err_err =  prediction_error_[i] - error_sq;
+    //float pred_err_err =  error_sq - prediction_error_[i];
+    /*
+    if (pred_err_err > 0) {
+      prediction_error_[i] -= 0.5f * pred_err_err;
+    } else {
+      prediction_error_[i] -= 0.5f * pred_err_err;
+    }
+    */
+   /*
+    const float w = error_sq > prediction_error_[i] ? 0.7f : 0.5f;
+    prediction_error_[i] += (w / (1 - w)) * error_sq;
+    prediction_error_[i] *= (1 - w);
+    */
+   //prediction_error_[i] += error_sq;
+   //prediction_error_[i] *= 0.5f;
     SLOPE(prediction_error_[i], error_sq, 0.7f, 0.2f);
+    /*
+#define SLOPE(out, in, positive, negative) { \
+  float error = (in) - out; \
+  out += (error > 0 ? positive : negative) * error; \
+}
+*/
+
+    //prediction_error_[i] += 0.5f * error_sq;
 
     if (i == 0) {
       ONE_POLE(predicted_period_[0], last_period, 0.5f);
@@ -146,7 +172,11 @@ void RampExtractor::Process(
         reset_interval_ = 4.0f * p.total_duration;
       } else {
         float period = static_cast<float>(p.total_duration);
-        if (period <= ar_threshold) {
+        if (period <= min_period_hysteresis_) {
+          min_period_hysteresis_ = min_period_ * 1.05f;
+          frequency_ = 1.0f / period;
+          average_pulse_width_ = 0.0f;
+        } else if (false && period <= ar_threshold && period > 0) {
           audio_rate_ = true;
           audio_rate_period_hysteresis_ = audio_rate_period_ * 1.1f;
 
@@ -211,11 +241,8 @@ void RampExtractor::Process(
         train_phase += frequency_;
         if (train_phase >= 1.0f) {
           train_phase -= 1.0f;
-          if (total_duration > ar_threshold) {
-            // Setting phase and freq to 0 makes it so we don't have to keep executing this
-            // inner conditional over and over until we get a gate, which matters since this is
-            // such a tight loop.
-            train_phase = 0.0f;
+          if (total_duration > 1.0f / target_frequency_) {
+            train_phase = 1.0f;
             frequency_ = target_frequency_ = 0.0f;
           }
         }

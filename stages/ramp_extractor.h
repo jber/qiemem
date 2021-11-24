@@ -98,11 +98,12 @@ class RampExtractor {
   float max_ramp_value_;
   float f_ratio_;
   float max_train_phase_;
-
   float max_frequency_;
   float audio_rate_period_;
   float audio_rate_period_hysteresis_;
   bool audio_rate_;
+  float min_period_;
+  float min_period_hysteresis_;
 
   DISALLOW_COPY_AND_ASSIGN(RampExtractor);
 };
