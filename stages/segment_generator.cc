@@ -66,6 +66,7 @@ void SegmentGenerator::Init(MultiMode multimode) {
   multimode_ = multimode;
 
   phase_ = 0.0f;
+  aux_ = 0.0f;
 
   zero_ = 0.0f;
   half_ = 0.5f;

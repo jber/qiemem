@@ -27,7 +27,7 @@ const uint32_t kSampleRate = 32000;
 
 void TestADSR() {
   SegmentGeneratorTest t;
-  
+
   segment::Configuration configuration[6] = {
     { segment::TYPE_RAMP, false },
     { segment::TYPE_RAMP, false },
@@ -47,12 +47,12 @@ void TestADSR() {
 
 void TestTwoStepSequence() {
   SegmentGeneratorTest t;
-  
+
   segment::Configuration configuration[2] = {
     { segment::TYPE_HOLD, false },
     { segment::TYPE_HOLD, false },
   };
-  
+
   t.generator()->Configure(true, configuration, 2);
   t.set_segment_parameters(0, 0.2f, 0.3f);
   t.set_segment_parameters(1, -1.0f, 0.5f);
@@ -61,7 +61,7 @@ void TestTwoStepSequence() {
 
 void TestSingleDecay() {
   SegmentGeneratorTest t;
-  
+
   segment::Configuration configuration = { segment::TYPE_RAMP, false };
 
   t.generator()->Configure(true, &configuration, 1);
@@ -71,7 +71,7 @@ void TestSingleDecay() {
 
 void TestTimedPulse() {
   SegmentGeneratorTest t;
-  
+
   segment::Configuration configuration = { segment::TYPE_HOLD, false };
 
   t.generator()->Configure(true, &configuration, 1);
@@ -195,5 +195,6 @@ int main(void) {
   TestTapLFO();
   TestDelay();
   TestZero();
-  TestClockedSampleAndHold();
+  // This segment type doesn't exist anymore
+  //TestClockedSampleAndHold();
 }
