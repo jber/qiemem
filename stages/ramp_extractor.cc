@@ -35,6 +35,7 @@
 // best performing one is selected (à la early Scheirer/Goto beat trackers).
 
 #include "stages/ramp_extractor.h"
+#include <cstdio>
 
 #include <algorithm>
 
@@ -169,14 +170,14 @@ void RampExtractor::Process(
         reset_counter_ = ratio.q;
         f_ratio_ = ratio.ratio;
         max_train_phase = static_cast<float>(ratio.q);
+        frequency_ = target_frequency_ = 1.0f / PredictNextPeriod();
         reset_interval_ = 4.0f * p.total_duration;
       } else {
         float period = static_cast<float>(p.total_duration);
-        if (period <= min_period_hysteresis_) {
-          min_period_hysteresis_ = min_period_ * 1.05f;
-          frequency_ = 1.0f / period;
-          average_pulse_width_ = 0.0f;
-        } else if (false && period <= ar_threshold && period > 0) {
+        if (period <= ar_threshold && period > 0) {
+          if (!audio_rate_) {
+            train_phase = 0.0f;
+          }
           audio_rate_ = true;
           audio_rate_period_hysteresis_ = audio_rate_period_ * 1.1f;
 
@@ -197,17 +198,25 @@ void RampExtractor::Process(
         } else {
           audio_rate_ = false;
           audio_rate_period_hysteresis_ = audio_rate_period_;
-
-          // Compute the pulse width of the previous pulse, and check if the
-          // PW has been consistent over the past pulses.
-          p.pulse_width = static_cast<float>(p.on_duration) / \
-              static_cast<float>(p.total_duration);
-          UpdateAveragePulseWidth(kPulseWidthTolerance);
-          if (p.on_duration < 32) {
+          if (period <= min_period_hysteresis_) {
+            min_period_hysteresis_ = min_period_ * 1.05f;
+            frequency_ = target_frequency_ = 1.0f / period;
             average_pulse_width_ = 0.0f;
             apw_match_count_ = 0;
+          } else {
+
+            // Compute the pulse width of the previous pulse, and check if the
+            // PW has been consistent over the past pulses.
+            min_period_hysteresis_ = min_period_;
+            p.pulse_width = static_cast<float>(p.on_duration) / \
+                static_cast<float>(p.total_duration);
+            UpdateAveragePulseWidth(kPulseWidthTolerance);
+            if (p.on_duration < 32) {
+              average_pulse_width_ = 0.0f;
+              apw_match_count_ = 0;
+            }
+            frequency_ = target_frequency_ = 1.0f / PredictNextPeriod();
           }
-          frequency_ = target_frequency_ = 1.0f / PredictNextPeriod();
           // Reset the phase if necessary, according to the divider ratio.
           --reset_counter_;
           if (!reset_counter_) {
@@ -239,7 +248,7 @@ void RampExtractor::Process(
         }
         ONE_POLE(frequency_, target_frequency_, lp_coefficient_);
         train_phase += frequency_;
-        if (train_phase >= 1.0f) {
+        if (train_phase > 1.0f) {
           train_phase -= 1.0f;
           if (total_duration > 1.0f / target_frequency_) {
             train_phase = 1.0f;
