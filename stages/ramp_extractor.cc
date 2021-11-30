@@ -200,7 +200,7 @@ void RampExtractor::Process(
           audio_rate_period_hysteresis_ = audio_rate_period_;
           if (period <= min_period_hysteresis_) {
             min_period_hysteresis_ = min_period_ * 1.05f;
-            frequency_ = target_frequency_ = 1.0f / period;
+            frequency_ = 1.0f / max(period, 1.0f / sample_rate_);
             average_pulse_width_ = 0.0f;
             apw_match_count_ = 0;
           } else {
@@ -215,7 +215,7 @@ void RampExtractor::Process(
               average_pulse_width_ = 0.0f;
               apw_match_count_ = 0;
             }
-            frequency_ = target_frequency_ = 1.0f / PredictNextPeriod();
+            frequency_ = 1.0f / PredictNextPeriod();
           }
           // Reset the phase if necessary, according to the divider ratio.
           --reset_counter_;
@@ -229,6 +229,7 @@ void RampExtractor::Process(
             float warp =  expected - train_phase + 1.0f;
             frequency_ *= max(warp, 0.01f);
           }
+          target_frequency_ = f_ratio_ * frequency_;
           reset_interval_ = static_cast<uint32_t>(
               max(4.0f / target_frequency_, sample_rate_ * 3.0f));
         }
@@ -250,7 +251,7 @@ void RampExtractor::Process(
         train_phase += frequency_;
         if (train_phase > 1.0f) {
           train_phase -= 1.0f;
-          if (total_duration > 1.0f / target_frequency_) {
+          if (total_duration / f_ratio_ > 1.5f / target_frequency_) {
             train_phase = 1.0f;
             frequency_ = target_frequency_ = 0.0f;
           }
