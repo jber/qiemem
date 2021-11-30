@@ -175,9 +175,6 @@ void RampExtractor::Process(
       } else {
         float period = static_cast<float>(p.total_duration);
         if (period <= ar_threshold && period > 0) {
-          if (!audio_rate_) {
-            train_phase = 0.0f;
-          }
           audio_rate_ = true;
           audio_rate_period_hysteresis_ = audio_rate_period_ * 1.1f;
 
