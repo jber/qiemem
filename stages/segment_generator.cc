@@ -747,6 +747,7 @@ void SegmentGenerator::ProcessTapRandomLFO(
     parameters_[0].primary * 1.03f,
     num_divider_ratios[range]
   );
+  /*
   Ratio slider_r = base_ratio_quantizer_.Lookup(
     divider_ratios + divider_ratios_start[range],
     local_parameters_[0].slider * 1.03f,
@@ -754,8 +755,9 @@ void SegmentGenerator::ProcessTapRandomLFO(
   );
   if (slider_r.ratio != last_slider_ratio) {
     last_slider_ratio = slider_r.ratio;
-    out->discrete_state |= 1;
+    out->changed_segments |= 1;
   }
+  */
 
   ramp_extractor_.Process(r, gate_flags, ramp, size);
   for (size_t i = 0; i < size; ++i) {
@@ -981,7 +983,7 @@ void SegmentGenerator::ProcessTuring(
     const GateFlags* gate_flags, SegmentGenerator::Output* out, size_t size) {
   size_t steps = tm_steps(parameters_[0].secondary);
   if (segments_[0].tm_steps != steps) {
-    out->discrete_state |= 1;
+    out->changed_segments |= 1;
     segments_[0].tm_steps = steps;
   }
   ParameterInterpolator primary(&primary_, parameters_[0].primary, size);

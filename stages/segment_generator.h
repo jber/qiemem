@@ -108,7 +108,7 @@ class SegmentGenerator {
     // bit representation of which channels have changed discrete state,
     // starting with the current channel (ie rightmost bit is current
     // channel). Will only be something besides 1 or 0 for groups.
-    uint32_t discrete_state;
+    uint32_t changed_segments;
   };
 
   struct Segment {

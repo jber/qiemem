@@ -114,6 +114,9 @@ void Process(IOBuffer::Block* block, size_t size) {
       &segment_generator[0],
       out);
   for (size_t channel = 0; channel < kNumChannels; ++channel) {
+    // Doing the shift here was found to have better performance that in the
+    // conditional below. wtf...
+    out->changed_segments >>= 1;
     bool led_state = segment_generator[channel].Process(
         block->input_patched[channel] ? block->input[channel] : no_gate,
         out,
@@ -130,13 +133,13 @@ void Process(IOBuffer::Block* block, size_t size) {
       }
     }
 
+    // changes are indicated on first output
+    if (out->changed_segments & 1) {
+      ui.set_discrete_change(channel);
+    }
+
     for (size_t i = 0; i < size; ++i) {
       block->output[channel][i] = settings.dac_code(channel, out[i].value);
-      if (out[i].discrete_state & 1) {
-        //ui.set_discrete_state(out[i].discrete_state);
-        ui.set_discrete_change(channel);
-      }
-      out[i].discrete_state >>= 1;
     }
   }
 }
