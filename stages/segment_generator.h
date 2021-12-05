@@ -145,6 +145,10 @@ class SegmentGenerator {
     return active_segment_ == 0;
   }
 
+  void SetMode(MultiMode multimode) {
+    multimode_ = multimode;
+  }
+
   void Configure(
       bool has_trigger,
       const segment::Configuration* segment_configuration,

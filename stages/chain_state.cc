@@ -294,6 +294,8 @@ void ChainState::Configure(
     size_t channel = local_channel_index(i);
     const uint16_t *local_configs = settings.state().segment_configuration;
 
+    segment_generator[i].SetMode(MultiMode(settings.state().multimode));
+
     if (!local_channel(i)->input_patched()) {
       if (channel > last_patched_channel) {
         // Create a slave channel - we are just extending a chain of segments.
