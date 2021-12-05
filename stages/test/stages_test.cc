@@ -85,14 +85,14 @@ void TestGate() {
   segment::Configuration configuration = { segment::TYPE_HOLD, true };
 
   t.generator()->Configure(true, &configuration, 1);
-  t.set_segment_parameters(0, 0.5f, 0.5f);
+  t.set_segment_parameters(0, 0.5f, 1.0f);
   t.Render("stages_gate.wav", ::kSampleRate);
 }
 
 void TestSampleAndHold() {
   SegmentGeneratorTest t;
 
-  segment::Configuration configuration = { segment::TYPE_STEP, true };
+  segment::Configuration configuration = { segment::TYPE_STEP, false };
 
   t.generator()->Configure(true, &configuration, 1);
   t.set_segment_parameters(0, -1.0f, 0.5f);
@@ -102,7 +102,7 @@ void TestSampleAndHold() {
 void TestPortamento() {
   SegmentGeneratorTest t;
 
-  segment::Configuration configuration = { segment::TYPE_STEP, true };
+  segment::Configuration configuration = { segment::TYPE_STEP, false };
 
   t.generator()->Configure(false, &configuration, 1);
   t.set_segment_parameters(0, -1.0f, 0.7f);
@@ -117,6 +117,38 @@ void TestFreeRunningLFO() {
   t.generator()->Configure(false, &configuration, 1);
   t.set_segment_parameters(0, 0.7f, -3.0f);
   t.Render("stages_free_running_lfo.wav", ::kSampleRate);
+}
+
+void TestTapLFOAudioRate() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_RAMP, true };
+
+  t.generator()->Configure(true, &configuration, 1);
+  t.pulses()->AddFreq(100000, 1001.0f, 0.5f, ::kSampleRate);
+  /*
+  t.pulses()->AddFreq(20, 90.0f, 0.5f, ::kSampleRate);
+  t.pulses()->AddFreq(20, 110.0f, 0.5f, ::kSampleRate);
+  t.pulses()->AddFreq(20, 123.0f, 0.5f, ::kSampleRate);
+  t.pulses()->AddFreq(20, 1234.0f, 0.5f, ::kSampleRate);
+  t.pulses()->AddFreq(20, 5000.0f, 0.5f, ::kSampleRate);
+  t.pulses()->AddFreq(20, 7000.0f, 0.5f, ::kSampleRate);
+  t.pulses()->AddFreq(20, 6000.0f, 0.5f, ::kSampleRate);
+  */
+  /*
+  t.pulses()->AddPulses(100, 50, 10);
+  t.pulses()->AddPulses(50, 5, 20);
+  t.pulses()->AddPulses(30, 5, 20);
+  t.pulses()->AddPulses(20, 5, 20);
+  for (int i = 0; i < 20; ++i) {
+    t.pulses()->AddPulses(30, 5, 1);
+    t.pulses()->AddPulses(10, 5, 1);
+  }
+  t.pulses()->AddPulses(100, 5, 10);
+  t.pulses()->AddPulses(50, 5, 20);
+  */
+  t.set_segment_parameters(0, 0.5f, 0.5f);
+  t.Render("stages_tap_lfo_audio_rate.wav", ::kSampleRate);
 }
 
 void TestTapLFO() {
@@ -138,6 +170,73 @@ void TestTapLFO() {
   t.pulses()->AddPulses(10, 5, 500);
   t.set_segment_parameters(0, 0.5f, 0.5f);
   t.Render("stages_tap_lfo.wav", ::kSampleRate);
+}
+
+void TestRandomSteppedLFO() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true };
+
+  t.generator()->Configure(false, &configuration, 1);
+  t.set_segment_parameters(0, 0.7f, 0.0f);
+  fprintf(stderr, "Rendering stepped LFO\n");
+  Random::Seed(0);
+  t.Render("stages_random_stepped_lfo.wav", ::kSampleRate);
+}
+
+void TestRandomSineLFO() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true };
+
+  t.generator()->Configure(false, &configuration, 1);
+  t.set_segment_parameters(0, 0.7f, 0.25f);
+  Random::Seed(0);
+  t.Render("stages_random_sine_lfo.wav", ::kSampleRate);
+}
+
+void TestRandomSplineLFO() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true };
+
+  t.generator()->Configure(false, &configuration, 1);
+  t.set_segment_parameters(0, 0.7f, 0.5f);
+  Random::Seed(0);
+  t.Render("stages_random_spline_lfo.wav", ::kSampleRate);
+}
+
+void TestRandomBrownianLFO() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true };
+
+  t.generator()->Configure(false, &configuration, 1);
+  t.set_segment_parameters(0, 0.7f, 0.75f);
+  Random::Seed(0);
+  t.Render("stages_random_brownian_lfo.wav", ::kSampleRate);
+}
+
+void TestWhiteNoise() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true, false, segment::RANGE_FAST };
+
+  t.generator()->Configure(false, &configuration, 1);
+  t.set_segment_parameters(0, 1.0f, 0.0f);
+  Random::Seed(0);
+  t.Render("stages_random_white_noise.wav", ::kSampleRate);
+}
+
+void TestBrownNoise() {
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true, false, segment::RANGE_FAST };
+
+  t.generator()->Configure(false, &configuration, 1);
+  t.set_segment_parameters(0, 1.0f, 1.0f);
+  Random::Seed(0);
+  t.Render("stages_random_brown_noise.wav", ::kSampleRate);
 }
 
 void TestDelay() {
@@ -193,8 +292,15 @@ int main(void) {
   TestPortamento();
   TestFreeRunningLFO();
   TestTapLFO();
+  TestTapLFOAudioRate();
+  TestRandomSteppedLFO();
+  TestRandomSineLFO();
+  TestRandomSplineLFO();
+  TestRandomBrownianLFO();
+  TestWhiteNoise();
+  TestBrownNoise();
   TestDelay();
-  TestZero();
+  //TestZero();
   // This segment type doesn't exist anymore
   //TestClockedSampleAndHold();
 }

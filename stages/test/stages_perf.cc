@@ -73,7 +73,7 @@ void TimeTapLFO() {
     SegmentGeneratorTest t;
     segment::Configuration configuration = { segment::TYPE_RAMP, true };
     t.generator()->Configure(true, &configuration, 1);
-    for (int i = 0; i < 24; ++i) {
+    for (int i = 0; i < 1000; ++i) {
       t.pulses()->AddPulses(1500, 500, 6);
       t.pulses()->AddPulses(3000, 500, 2);
     }
@@ -82,16 +82,91 @@ void TimeTapLFO() {
     const size_t size = 8;
     while (!t.pulses()->empty()) {
       GateFlags flags[size];
-      t.pulses()->Render(flags, 1);
+      t.pulses()->Render(flags, 8);
       SegmentGenerator::Output out[size];
 
       t.generator()->Process(flags, out, size);
     }
     return 0;
-  }, 3);
-
+  }, 7);
 }
+
+void TimeRandomBrownianTapLFO() {
+  cout << "Random Brownian Tap LFO" << endl;
+  timeit([] {
+    SegmentGeneratorTest t;
+    segment::Configuration configuration = { segment::TYPE_TURING, true };
+    t.generator()->Configure(true, &configuration, 1);
+    for (int i = 0; i < 1000; ++i) {
+      t.pulses()->AddPulses(1500, 500, 6);
+      t.pulses()->AddPulses(3000, 500, 2);
+    }
+
+    t.set_segment_parameters(0, 0.5f, 0.75f);
+    const size_t size = 8;
+    while (!t.pulses()->empty()) {
+      GateFlags flags[size];
+      t.pulses()->Render(flags, 8);
+      SegmentGenerator::Output out[size];
+
+      t.generator()->Process(flags, out, size);
+    }
+    return 0;
+  }, 7);
+}
+
+void TimeRandomSplineTapLFO() {
+  cout << "Random Spline Tap LFO" << endl;
+  timeit([] {
+    SegmentGeneratorTest t;
+    segment::Configuration configuration = { segment::TYPE_TURING, true };
+    t.generator()->Configure(true, &configuration, 1);
+    for (int i = 0; i < 1000; ++i) {
+      t.pulses()->AddPulses(1500, 500, 6);
+      t.pulses()->AddPulses(3000, 500, 2);
+    }
+
+    t.set_segment_parameters(0, 0.5f, 0.5f);
+    const size_t size = 8;
+    while (!t.pulses()->empty()) {
+      GateFlags flags[size];
+      t.pulses()->Render(flags, 8);
+      SegmentGenerator::Output out[size];
+
+      t.generator()->Process(flags, out, size);
+    }
+    return 0;
+  }, 7);
+}
+
+void TimeRandomSineTapLFO() {
+  cout << "Random Sine Tap LFO" << endl;
+  timeit([] {
+    SegmentGeneratorTest t;
+    segment::Configuration configuration = { segment::TYPE_TURING, true };
+    t.generator()->Configure(true, &configuration, 1);
+    for (int i = 0; i < 1000; ++i) {
+      t.pulses()->AddPulses(1500, 500, 6);
+      t.pulses()->AddPulses(3000, 500, 2);
+    }
+
+    t.set_segment_parameters(0, 0.5f, 0.5f);
+    const size_t size = 8;
+    while (!t.pulses()->empty()) {
+      GateFlags flags[size];
+      t.pulses()->Render(flags, 8);
+      SegmentGenerator::Output out[size];
+
+      t.generator()->Process(flags, out, size);
+    }
+    return 0;
+  }, 7);
+}
+
 
 int main() {
   TimeTapLFO();
+  TimeRandomBrownianTapLFO();
+  TimeRandomSineTapLFO();
+  TimeRandomSplineTapLFO();
 }

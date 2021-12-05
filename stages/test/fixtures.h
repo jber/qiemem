@@ -50,6 +50,23 @@ class PulseGenerator {
     pulses_.push_back(p);
   }
 
+  void AddFreq(int count, float frequency, float pw, long sample_rate) {
+    int last_dur = 0;
+    int pulse_count = 0;
+    for (int i=1; i<count; i++) {
+      long end = static_cast<long>(i * sample_rate / frequency);
+      long start = static_cast<long>((i - 1) * sample_rate / frequency);
+      int dur = static_cast<int>(end - start);
+      if ((pulse_count > 0 && dur != last_dur) || i == count -1) {
+        int on_dur = static_cast<int>(dur * pw);
+        this->AddPulses(dur, on_dur, pulse_count);
+        pulse_count=0;
+      }
+      last_dur = dur;
+      pulse_count++;
+    }
+  }
+
   void CreateTestPattern() {
     AddPulses(16000, 4000, 3);
     AddPulses(16000, 8000, 3);
@@ -91,7 +108,7 @@ class PulseGenerator {
 class SegmentGeneratorTest {
  public:
    SegmentGeneratorTest() {
-    segment_generator_.Init(MULTI_MODE_STAGES);
+    segment_generator_.Init(MULTI_MODE_STAGES_ADVANCED);
   }
   ~SegmentGeneratorTest() { }
 
