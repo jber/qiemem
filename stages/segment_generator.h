@@ -283,7 +283,6 @@ class SegmentGenerator {
 
   stmlib::HysteresisQuantizer function_quantizer_;
   float last_slider_ratio;
-  stmlib::HysteresisQuantizer base_ratio_quantizer_;
 
   Segment segments_[kMaxNumSegments + 1];  // There's a sentinel!
   segment::Parameters parameters_[kMaxNumSegments];

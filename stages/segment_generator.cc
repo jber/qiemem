@@ -747,17 +747,6 @@ void SegmentGenerator::ProcessTapRandomLFO(
     parameters_[0].primary * 1.03f,
     num_divider_ratios[range]
   );
-  /*
-  Ratio slider_r = base_ratio_quantizer_.Lookup(
-    divider_ratios + divider_ratios_start[range],
-    local_parameters_[0].slider * 1.03f,
-    num_divider_ratios[range]
-  );
-  if (slider_r.ratio != last_slider_ratio) {
-    last_slider_ratio = slider_r.ratio;
-    out->changed_segments |= 1;
-  }
-  */
 
   ramp_extractor_.Process(r, gate_flags, ramp, size);
   for (size_t i = 0; i < size; ++i) {

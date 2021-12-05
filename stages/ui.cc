@@ -109,17 +109,14 @@ void Ui::Poll() {
   // TODO: This is gross. Each mode should have its own UI handler, with a
   // generic system for changing segment properties that each can leverage.
   bool changing_prop = false;
-  if (pressed || changing_pot_prop_ || changing_slider_prop_) {
+  if (pressed || changing_pot_prop_ || changing_slider_prop_ || cv_reader_->any_locked()) {
     bool dirty = false;
     uint16_t* seg_config = settings_->mutable_state()->segment_configuration;
     for (uint8_t i = 0; i < kNumChannels; ++i) {
       if (switches_.pressed(i)) {
         cv_reader_->Lock(i);
         float slider = cv_reader_->lp_slider(i);
-        CONSTRAIN(slider, 0.0f, 0.9999f);
         float pot = cv_reader_->lp_pot(i);
-        CONSTRAIN(pot, 0.0f, 0.9999f);
-
         float locked_slider = cv_reader_->locked_slider(i);
         float locked_pot = cv_reader_->locked_pot(i);
 
@@ -127,6 +124,7 @@ void Ui::Poll() {
 
         if (changing_slider_prop_ >> i & 1 // in the middle of change, so keep changing
             || fabs(slider - locked_slider) > 0.05f) {
+
           changing_slider_prop_ |= 1 << i;
 
           if (settings_->in_seg_gen_mode()) {
@@ -191,10 +189,31 @@ void Ui::Poll() {
           }
         }
         dirty = dirty || seg_config[i] != old_flags;
-      } else {
+      } else if (cv_reader_->is_locked(i)) {
         changing_pot_prop_ &= ~(1 << i);
         changing_slider_prop_ &= ~(1 << i);
-        cv_reader_->Unlock(i);
+
+        float locked_slider = cv_reader_->locked_slider(i);
+        float slider = cv_reader_->lp_slider(i);
+        float locked_pot = cv_reader_->locked_pot(i);
+        float pot = cv_reader_->lp_pot(i);
+
+        bool unlock = true;
+        if (fabsf(locked_slider - slider) > 0.01f) {
+          unlock = false;
+          // This should run about every ms, so 0.001f causes return to value
+          // within, at most, 1 sec.
+          float delta = 0.001f * (2.0f * (locked_slider < slider) - 0.5f);
+          cv_reader_->set_locked_slider(i, locked_slider + delta);
+        }
+        if (fabsf(locked_pot - pot) > 0.01f) {
+          unlock = false;
+          float delta = 0.001f * (2.0f * (locked_pot < pot) - 0.5f);
+          cv_reader_->set_locked_pot(i, locked_pot + delta);
+        }
+        if (unlock) {
+          cv_reader_->Unlock(i);
+        }
       }
     }
     if (dirty) {
@@ -206,10 +225,7 @@ void Ui::Poll() {
     if (changing_prop) {
       chain_state_->SuspendSwitches();
     }
-  } else {
-    cv_reader_->unlock_all();
   }
-
 
   if (settings_->in_ouroboros_mode()) {
 
@@ -448,27 +464,22 @@ void Ui::UpdateLEDs() {
       }
     }
 
-    if (cv_reader_->any_slider_in_limbo()) {
+    if (cv_reader_->any_locked()) {
       for (size_t i = 0; i < kNumChannels; ++i) {
         // Turn off LEDs if in limbo
-        if (cv_reader_->slider_in_limbo(i)) {
-          uint8_t dimness = static_cast<uint8_t>(
+        if (cv_reader_->is_locked(i)) {
+          uint8_t slider_dimness = static_cast<uint8_t>(
               8 * fabs(cv_reader_->locked_slider(i) - cv_reader_->lp_slider(i)));
           leds_.set(LED_GROUP_SLIDER + i,
-              (ms & 0x07) < dimness ? LED_COLOR_OFF : LED_COLOR_GREEN );
-        }
-      }
-    }
-    if (cv_reader_->any_pot_in_limbo()) {
-      for (size_t i = 0; i < kNumChannels; ++i) {
-      if (cv_reader_->pot_in_limbo(i)) {
-        uint8_t dimness = static_cast<uint8_t>(
-            8 * fabs(cv_reader_->locked_pot(i) - cv_reader_->lp_pot(i)));
+              (ms & 0x07) < slider_dimness ? LED_COLOR_OFF : LED_COLOR_GREEN );
 
-        if ((ms & 0x07) < dimness) {
-          leds_.set(LED_GROUP_UI + i, LED_COLOR_OFF);
+          uint8_t pot_dimness = static_cast<uint8_t>(
+              8 * fabs(cv_reader_->locked_pot(i) - cv_reader_->lp_pot(i)));
+
+          if ((ms & 0x07) < pot_dimness) {
+            leds_.set(LED_GROUP_UI + i, LED_COLOR_OFF);
+          }
         }
-      }
       }
     }
   }

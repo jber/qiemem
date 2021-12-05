@@ -81,8 +81,20 @@ class CvReader {
     return lp_pot_[i];
   }
 
+  inline void set_locked_slider(int i, float x) {
+    locked_slider_[i] = x;
+  }
+
   inline float locked_slider(int i) const {
     return locked_slider_[i];
+  }
+
+  inline void set_locked_pot(int i, float x) {
+    locked_pot_[i] = x;
+  }
+
+  inline bool any_locked() const {
+    return locked_;
   }
 
   inline float locked_pot(int i) const {
@@ -91,44 +103,6 @@ class CvReader {
 
   inline bool is_locked(int i) const {
     return locked_ >> i & 1;
-  }
-
-  inline bool any_pot_in_limbo() const {
-    return pot_limbo_;
-  }
-
-  inline bool pot_in_limbo(int i) const {
-    return (pot_limbo_ >> i & 1);
-  }
-
-  inline bool any_slider_in_limbo() const {
-    return slider_limbo_;
-  }
-
-  inline bool slider_in_limbo(int i) const {
-    return (slider_limbo_ >> i & 1);
-  }
-
-  bool update_pot_limbo(int i) {
-    bool in_limbo = pot_in_limbo(i)
-      && (fabs(locked_pot_[i] - lp_pot_[i]) > 0.01f);
-    pot_limbo_ &= ~(!in_limbo << i);
-    locked_pot_[i] += in_limbo
-      * 2.0f * ((locked_pot_[i] < lp_pot_[i]) - 0.5f)
-      // constant is how many seconds to take in extreme
-      * kBlockSize / (1.0f * kSampleRate);
-    return in_limbo;
-  }
-
-  bool update_slider_limbo(int i) {
-    bool in_limbo = slider_in_limbo(i)
-      && (fabs(locked_slider_[i] - lp_slider_[i]) > 0.01f);
-    slider_limbo_ &= ~(!in_limbo << i);
-    locked_slider_[i] += in_limbo
-      * 2.0f * ((locked_slider_[i] < lp_slider_[i]) - 0.5f)
-      // constant is how many seconds to take in extreme
-      * kBlockSize / (1.0f * kSampleRate);
-    return in_limbo;
   }
 
  private:
@@ -143,8 +117,6 @@ class CvReader {
   float lp_pot_[kNumChannels];
 
   uint8_t locked_;
-  uint8_t pot_limbo_; // waiting for slider/pot to get back to true value
-  uint8_t slider_limbo_;
   float locked_slider_[kNumChannels];
   float locked_pot_[kNumChannels];
 
