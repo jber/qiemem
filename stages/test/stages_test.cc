@@ -217,6 +217,21 @@ void TestRandomBrownianLFO() {
   t.Render("stages_random_brownian_lfo.wav", ::kSampleRate);
 }
 
+void TestRandomTapLFO() {
+  srand(0);
+  SegmentGeneratorTest t;
+
+  segment::Configuration configuration = { segment::TYPE_TURING, true };
+
+  t.generator()->Configure(true, &configuration, 1);
+  for (int i = 0; i < 1000; ++i) {
+    int length = (rand() % 1200) + 400;
+    t.pulses()->AddPulses(length, 100, 1);
+  }
+  t.set_segment_parameters(0, 0.5f, 0.0f);
+  t.Render("stages_random_tap_lfo.wav", ::kSampleRate);
+}
+
 void TestWhiteNoise() {
   SegmentGeneratorTest t;
 
@@ -297,6 +312,7 @@ int main(void) {
   TestRandomSineLFO();
   TestRandomSplineLFO();
   TestRandomBrownianLFO();
+  TestRandomTapLFO();
   TestWhiteNoise();
   TestBrownNoise();
   TestDelay();
