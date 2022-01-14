@@ -287,15 +287,15 @@ void ChainState::Configure(
 
   segment::Configuration configuration[kMaxNumChannels];
 
+  const uint16_t *local_configs = settings.state().segment_configuration;
+  const MultiMode mode = static_cast<MultiMode>(settings.state().multimode);
+
   attenuate_ = 0;
   process_cv_ = 0;
 
   for (size_t i = 0; i < kNumChannels; ++i) {
     size_t channel = local_channel_index(i);
-    const uint16_t *local_configs = settings.state().segment_configuration;
-
-    segment_generator[i].SetMode(MultiMode(settings.state().multimode));
-
+    segment_generator[i].SetMode(mode);
     if (!local_channel(i)->input_patched()) {
       if (channel > last_patched_channel) {
         // Create a slave channel - we are just extending a chain of segments.
